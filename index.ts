@@ -2196,7 +2196,7 @@ Usage:
 
             return {
               content: [{ type: "text", text: `${currentSection}\n\n${otherSection}` }],
-              details: {},
+              details: { roster: { peers: otherSessions.length, total: sessions.length } },
             };
           } catch (error) {
             return {
@@ -2250,7 +2250,7 @@ Usage:
 
             return {
               content: [{ type: "text", text: `${currentSection}\n\n${otherSection}` }],
-              details: {},
+              details: { roster: { peers: otherSessions.length, total: sessions.length, cwd: filterCwd } },
             };
           } catch (error) {
             return {
@@ -2643,9 +2643,17 @@ Usage:
       if (isPartial) {
         return new Text(theme.fg("warning", "Intercom working..."), 0, 0);
       }
-      const details = result.details as { delivered?: boolean; error?: boolean; messageId?: string; reason?: string } | undefined;
+      const details = result.details as { delivered?: boolean; error?: boolean; messageId?: string; reason?: string; roster?: { peers: number; total: number; cwd?: string } } | undefined;
       const failed = Boolean(context.isError || details?.error === true || details?.delivered === false);
       let text = failed ? theme.fg("error", "✗ ") : theme.fg("success", "✓ ");
+      if (details?.roster && !failed && !context.expanded) {
+        // Collapsed rows are display-only; the model still receives the full roster text.
+        const { peers, total, cwd: rosterCwd } = details.roster;
+        const where = rosterCwd ? ` in ${rosterCwd}` : "";
+        text += theme.fg("text", peers === 0 ? `no other sessions${where}` : `${peers} other session${peers === 1 ? "" : "s"}${where}`);
+        text += theme.fg("dim", ` (${total} connected)`);
+        return new Text(text, 0, 0);
+      }
       text += theme.fg(failed ? "error" : "text", firstTextContent(result));
       if (details?.messageId && !context.expanded) {
         text += theme.fg("dim", ` (${details.messageId.slice(0, 8)})`);

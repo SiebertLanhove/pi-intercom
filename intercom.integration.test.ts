@@ -1793,6 +1793,15 @@ test("intercom tool renders compact call and result rows", async () => {
   }, { isPartial: false, expanded: true }, renderTheme, { isError: false, expanded: true }));
   assert.match(errorText, /✗ Missing 'to' or 'message' parameter/);
   assert.match(errorText, /Reason: Missing target/);
+
+  const roster = {
+    content: [{ type: "text", text: "**Current session:**\n• me\n\n**Other sessions (cwd: /repo):**\n• peer-a\n• peer-b" }],
+    details: { roster: { peers: 2, total: 3, cwd: "/repo" } },
+  };
+  const collapsedRoster = renderToText(intercomTool.renderResult(roster, { isPartial: false, expanded: false }, renderTheme, { isError: false, expanded: false }));
+  assert.equal(collapsedRoster, "✓ 2 other sessions in /repo (3 connected)");
+  const expandedRoster = renderToText(intercomTool.renderResult(roster, { isPartial: false, expanded: true }, renderTheme, { isError: false, expanded: true }));
+  assert.match(expandedRoster, /peer-a\n• peer-b/);
 });
 
 test("intercom tool result hook marks failed details as errors", async () => {
