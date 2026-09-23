@@ -522,6 +522,37 @@ pi.events.on(INTERCOM_SESSION_IDENTITY_EVENT, (request: IntercomSessionIdentityR
   request.claim("subagent-worker-run1-1");
 });
 ```
+## Scripting and Remote Machines
+
+`cli.ts` is a minimal command-line client for scripted access to the local broker. It registers as a regular session (so it appears in the roster and can receive replies while connected), reuses the same `IntercomClient` as the extension, and adds no network surface — it only ever talks to the same-machine broker.
+
+These commands assume pi-intercom is installed by Pi under `~/.pi/agent/npm/node_modules/pi-intercom/`; `npx --yes tsx` supplies the TypeScript runner without requiring a global `tsx` installation. Run them on the broker's machine with an existing pi-intercom session: the CLI does not start a broker.
+
+```bash
+# roster
+npx --yes tsx ~/.pi/agent/npm/node_modules/pi-intercom/cli.ts list
+
+# fire-and-forget message (cron hooks, CI, notifications)
+npx --yes tsx ~/.pi/agent/npm/node_modules/pi-intercom/cli.ts send --to worker --text "build failed — please look at src/api"
+
+# blocking ask: prints the other session's reply and exits
+npx --yes tsx ~/.pi/agent/npm/node_modules/pi-intercom/cli.ts ask --to planner --text "which API version?" --timeout-ms 180000
+
+# JSON output for scripts
+npx --yes tsx ~/.pi/agent/npm/node_modules/pi-intercom/cli.ts list --json
+```
+
+Flags: `--to <name|session-id>`, `--text`, `--name <session-name>` (roster name, default `pi-intercom-cli`), `--timeout-ms` (ask only, default 120000), `--json`. Exit codes: `0` success, `1` usage/connection/delivery failure, `2` ask timeout. With `--json`, every command prints one object with an `ok` field: `list` returns `{ ok: true, sessions: [...] }`, and failures return `ok: false` with `error` (plus `reason: "timeout"` on timeout).
+
+### Cross-machine coordination over ssh
+
+Because the CLI runs *on the machine that owns the broker*, you can bridge sessions across machines through ssh without opening any network listener — the remote broker stays exactly as local-only as before:
+
+```bash
+ssh myserver 'npx --yes tsx ~/.pi/agent/npm/node_modules/pi-intercom/cli.ts ask --to worker --text "done with the migration?"'
+```
+
+The remote session's reply is routed back to the CLI connection and printed locally, so shell scripts (and other pi sessions driving them) can hold full ask/reply conversations with sessions on other machines.
 
 ## How It Works
 
