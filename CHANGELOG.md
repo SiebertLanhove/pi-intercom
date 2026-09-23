@@ -8,7 +8,7 @@ All notable changes to the `pi-intercom` extension will be documented in this fi
 - Extensions can claim a session's intercom ID per session through the new `intercom:session-identity` event. This lets pi-subagents route to a child by a fixed ID while the child's session name stays readable. Thanks to [@Q-xuan](https://github.com/Q-xuan) for raising the readable child name problem in nicobailon/pi-subagents#2432.
 
 ### Changed
-- `list` and `list-cwd` results render collapsed as one line (`3 other sessions (4 connected)`); the full roster shows on expand and is still returned to the model in full. The tool description no longer asks for a re-list before every reuse: a session ID is valid for that session's life, so list again only when a target is unknown, a send reports it missing, or peers may have changed.
+- `list` and `list-cwd` results now render as one line (`3 other sessions (4 connected)`) in the TUI. Expand the result to see the full roster; the model still receives the full roster. Thanks to [@SiebertLanhove](https://github.com/SiebertLanhove) for #127.
 
 ## [0.13.0] - 2026-09-02
 

@@ -2103,9 +2103,7 @@ Use this to communicate findings, request help, or coordinate work with other se
 
 Target a session by name, full session ID, or the short id shown in parentheses
 by "list" (a leading prefix of the ID is enough). Prefer the short id when two
-sessions share a name. A session ID stays valid for the life of that session, so
-reuse a known ID directly; list again only when a target is unknown, a send reports
-it missing, or peers may have started or exited. Skip a target that resolves to self.
+sessions share a name. Re-list before reusing a session ID; skip if it resolves to self.
 
 Usage:
   intercom({ action: "list" })                    → List active sessions
@@ -2198,7 +2196,7 @@ Usage:
 
             return {
               content: [{ type: "text", text: `${currentSection}\n\n${otherSection}` }],
-              details: { roster: { peers: otherSessions.length, total: sessions.length, cwd: filterCwd } },
+              details: { roster: { peers: otherSessions.length, total: sessions.length } },
             };
           } catch (error) {
             return {
@@ -2252,7 +2250,7 @@ Usage:
 
             return {
               content: [{ type: "text", text: `${currentSection}\n\n${otherSection}` }],
-              details: { roster: { peers: otherSessions.length, total: sessions.length } },
+              details: { roster: { peers: otherSessions.length, total: sessions.length, cwd: filterCwd } },
             };
           } catch (error) {
             return {
@@ -2649,8 +2647,7 @@ Usage:
       const failed = Boolean(context.isError || details?.error === true || details?.delivered === false);
       let text = failed ? theme.fg("error", "✗ ") : theme.fg("success", "✓ ");
       if (details?.roster && !failed && !context.expanded) {
-        // A roster is discovery, not an answer: one line collapsed, the full list on expand.
-        // The model still receives the complete text content for routing.
+        // Collapsed rows are display-only; the model still receives the full roster text.
         const { peers, total, cwd: rosterCwd } = details.roster;
         const where = rosterCwd ? ` in ${rosterCwd}` : "";
         text += theme.fg("text", peers === 0 ? `no other sessions${where}` : `${peers} other session${peers === 1 ? "" : "s"}${where}`);
